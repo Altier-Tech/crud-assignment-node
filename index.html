@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Car Models</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+  <h1>Car Models</h1>
+  <form id="add-form">
+    <label for="make">Make:</label>
+    <input type="text" id="make" name="make"><br>
+    <label for="model">Model:</label>
+    <input type="text" id="model" name="model"><br>
+    <label for="year">Year:</label>
+    <input type="number" id="year" name="year"><br>
+    <button type="submit">Add</button>
+  </form>
+  <table id="car-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Make</th>
+        <th>Model</th>
+        <th>Year</th>
+        <th>Edit</th>
+        <th>Delete</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+  <script>
+    $(document).ready(() => {
+      const db = new mysql.Database('cars');
+      db.query(`CREATE TABLE IF NOT EXISTS carmodels (
+        id INT NOT NULL AUTO_INCREMENT,
+        make VARCHAR(255) NOT NULL,
+        model VARCHAR(255) NOT NULL,
+        year INT NOT NULL,
+        PRIMARY KEY (id)
+      )`, (err) => {
+        if (err) throw err;
+        console.log('carmodels table created...');
+        refreshTable();
+      });
+
+      $('#add-form').submit((event) => {
+        event.preventDefault();
+        const make = $('#make').val();
+        const model = $('#model').val();
+        const year = $('#year').val();
+        db.query(`INSERT INTO carmodels (make, model, year) VALUES (?, ?, ?)`, [make, model, year], (err) => {
+          if (err) throw err;
+          console.log('carmodel added...');
+          refreshTable();
+        });
+      });
+
+      function refreshTable() {
+        db.query(`SELECT * FROM carmodels`, (err, rows) => {
+          if (err) throw err;
+          console.log('carmodels retrieved...');
+          const tbody = $('#car-table tbody');
+          tbody.empty();
+          rows.forEach((row) => {
+            const tr = $('<tr>');
+            tr.append($('<td>').text(row.id));
+            tr.append($('<td>').text(row.make));
+            tr.append($('<td>').text(row.model));
+            tr.append($('<td>').text(row.year));
+            const editButton = $('<button>').text('Edit');
+            editButton.click(() => {
+              const make = prompt('Enter make:', row.make);
+              const model = prompt('Enter model:', row.model);
+              const year = prompt('Enter year:', row.year);
+              db.query(`UPDATE carmodels SET make = ?, model = ?, year = ? WHERE id = ?`, [make, model, year, row.id], (err) => {
+                if (err) throw err;
+                console.log('carmodel updated...');
+                refreshTable();
+              });
+            });
+            tr.append($('<td>').append(editButton));
+            const deleteButton = $('<button>').text('Delete');
+            deleteButton.click(() => {
+              db.query(`DELETE FROM carmodels WHERE id = ?`, [row.id], (err) => {
+                if (err) throw err;
+                console.log('carmodel deleted...');
+                refreshTable();
+              });
+            });
+            tr.append($('<td>').append(deleteButton));
+            tbody.append(tr);
+          });
+        });
+      }
+    });
+  </script>
+</body>
+</html>
