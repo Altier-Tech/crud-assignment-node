@@ -17,66 +17,66 @@ const conn = mysql.createConnection({
 conn.connect((err) => {
   if (err) throw err;
   console.log('MySQL connected...');
-});
-
-const createTableQuery = `CREATE TABLE IF NOT EXISTS cars (
-id INT PRIMARY KEY AUTO_INCREMENT,
-make VARCHAR(255) NOT NULL,
-model VARCHAR(255) NOT NULL,
-year INT NOT NULL
-)`;
-
-conn.query(createTableQuery, (err, result) => {
+  
+  // Create carmodels table if not exists
+  const createTableQuery = `CREATE TABLE IF NOT EXISTS carmodels (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    make VARCHAR(255) NOT NULL,
+    model VARCHAR(255) NOT NULL,
+    year INT NOT NULL
+  )`;
+  
+  conn.query(createTableQuery, (err, result) => {
     if (err) throw err;
-    console.log(result);
-});
-
-// Add record
-app.post('/api/cars', (req, res) => {
-  const sql = 'INSERT INTO cars SET ?';
-  const car = {
-    make: req.body.make,
-    model: req.body.model,
-    year: req.body.year
-  };
-  conn.query(sql, car, (err, result) => {
-    if (err) throw err;
-    console.log(result);
-    res.send('Car added...');
+    console.log('carmodels table created...');
   });
 });
 
-// Edit record
-app.put('/api/cars/:id', (req, res) => {
-  const sql = `UPDATE cars SET make='${req.body.make}', model='${req.body.model}', year='${req.body.year}' WHERE id=${req.params.id}`;
-  conn.query(sql, (err, result) => {
+// Add carmodel
+app.post('/carmodels', (req, res) => {
+  const { make, model, year } = req.body;
+  const insertQuery = `INSERT INTO carmodels (make, model, year) VALUES (?, ?, ?)`;
+  conn.query(insertQuery, [make, model, year], (err, result) => {
     if (err) throw err;
-    console.log(result);
-    res.send('Car updated...');
+    console.log('carmodel added...');
+    res.send('carmodel added...');
   });
 });
 
-// Delete record
-app.delete('/api/cars/:id', (req, res) => {
-  const sql = `DELETE FROM cars WHERE id=${req.params.id}`;
-  conn.query(sql, (err, result) => {
+// Delete carmodel
+app.delete('/carmodels/:id', (req, res) => {
+  const { id } = req.params;
+  const deleteQuery = `DELETE FROM carmodels WHERE id = ?`;
+  conn.query(deleteQuery, [id], (err, result) => {
     if (err) throw err;
-    console.log(result);
-    res.send('Car deleted...');
+    console.log('carmodel deleted...');
+    res.send('carmodel deleted...');
   });
 });
 
-// View records
-app.get('/api/cars', (req, res) => {
-  const sql = 'SELECT * FROM cars';
-  conn.query(sql, (err, result) => {
+// Get all carmodels
+app.get('/carmodels', (req, res) => {
+  const selectQuery = `SELECT * FROM carmodels`;
+  conn.query(selectQuery, (err, result) => {
     if (err) throw err;
-    console.log(result);
+    console.log('carmodels retrieved...');
     res.send(result);
   });
 });
 
+// Update carmodel
+app.put('/carmodels/:id', (req, res) => {
+  const { id } = req.params;
+  const { make, model, year } = req.body;
+  const updateQuery = `UPDATE carmodels SET make = ?, model = ?, year = ? WHERE id = ?`;
+  conn.query(updateQuery, [make, model, year, id], (err, result) => {
+    if (err) throw err;
+    console.log('carmodel updated...');
+    res.send('carmodel updated...');
+  });
+});
+
 // Start server
-app.listen('3000', () => {
+app.listen(3000, () => {
   console.log('Server started on port 3000...');
 });
