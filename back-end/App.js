@@ -19,6 +19,18 @@ conn.connect((err) => {
   console.log('MySQL connected...');
 });
 
+const createTableQuery = `CREATE TABLE IF NOT EXISTS cars (
+id INT PRIMARY KEY AUTO_INCREMENT,
+make VARCHAR(255) NOT NULL,
+model VARCHAR(255) NOT NULL,
+year INT NOT NULL
+)`;
+
+conn.query(createTableQuery, (err, result) => {
+    if (err) throw err;
+    console.log(result);
+});
+
 // Add record
 app.post('/api/cars', (req, res) => {
   const sql = 'INSERT INTO cars SET ?';
